@@ -2,53 +2,93 @@ use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
-fn main()
-{
-    let mut input_strings:Vec<String> = Vec::new();
-    if let Ok(file) = read_file("inputs/day03inputs.txt")
-    {
-        for line in file 
-        {
-            input_strings.push(line.unwrap());
+// struct PrintableVec<T:Display>(pub Vec<T>);
+//
+// impl <T:Display> Display for PrintableVec<T>{
+//     fn fmt(&self, f: &mut Formatter<>) -> fmt::Result {
+//         self.0.iter().fold(Ok(()), |result, content| {
+//             return result.and_then(|_| writeln!(f,"{}",content));
+//         })
+//     }
+// }
+
+fn main() {
+    let mut string_inputs:Vec<String> = Vec::new();
+    if let Ok(file) = read_file("inputs/day03inputs.txt") {
+        for line in file {
+            string_inputs.push(line.expect("That is not a valid input!"));
         }
     }
 
-    let mut i = 0:usize;
-    let mut final_num:Vec<char> = Vec::new();
-/*    while i < 5 {
-        let mut zero_count = 0:u16;
-        let iter_string = input_strings.iter();
-        for input_string in iter_string {
-            let j = 0:usize;
-            let check_number = true;
-            while j < i {
-
-            }
-            if check_number {
-                if input_string.chars().nth(i).unwrap() == "0" {
-                    zero_count += 1;
-                } else {
-                    zero_count -= 1;
-                }
-            }
-
-            if zero_count >= 0 {
-
-            }
-        }
-        i += 1;
-    }*/
+    let oxygen_current = oxygen(string_inputs.clone());
+    let co2_current = co2_scrubber(string_inputs);
+    println!("{}",  to_dec(&oxygen_current[0]) * to_dec(&co2_current[0]));
 
 
 }
 
-fn bin_to_dec (mut input: Vec<u8>,length: usize, number: u8) -> u32
-{
-    if input.len() == 0 { return 0; }
-    let current = input[length-1] as u32 * 2_u32.pow(number as u32);
-    input.truncate(length-1);
-    return current + bin_to_dec(input,length-1,number+1);
+fn oxygen(string_inputs: Vec<String>) -> Vec<String> {
+    let length = string_inputs[0].len();
+    let mut oxygen_current = string_inputs;
 
+    for i in 0..length {
+        if oxygen_current.len() <= 1 {
+            break;
+        }
+
+        let mut zero_strings: Vec<String> = Vec::new();
+        let mut one_strings: Vec<String> = Vec::new();
+
+        for curr_string in oxygen_current {
+            let ch = curr_string.chars().nth(i).expect("Not a valid input character!");
+            if ch == '0' {
+                zero_strings.push(curr_string);
+            } else {
+                one_strings.push(curr_string);
+            }
+        }
+
+        if one_strings.len() >= zero_strings.len() {
+            oxygen_current = one_strings;
+        } else {
+            oxygen_current = zero_strings;
+        }
+    }
+    oxygen_current
+}
+
+fn co2_scrubber(string_inputs: Vec<String>) -> Vec<String> {
+    let length = string_inputs[0].len();
+    let mut co2_current = string_inputs;
+
+    for i in 0..length {
+        if co2_current.len() <= 1 {
+            break;
+        }
+
+        let mut zero_strings: Vec<String> = Vec::new();
+        let mut one_strings: Vec<String> = Vec::new();
+
+        for curr_string in co2_current {
+            let ch = curr_string.chars().nth(i).expect("Not a valid input character!");
+            if ch == '0' {
+                zero_strings.push(curr_string);
+            } else {
+                one_strings.push(curr_string);
+            }
+        }
+
+        if one_strings.len() < zero_strings.len() {
+            co2_current = one_strings;
+        } else {
+            co2_current = zero_strings;
+        }
+    }
+    co2_current
+}
+
+fn to_dec(val: &str) -> u32 {
+    return u32::from_str_radix(val, 2).unwrap();
 }
 
 fn read_file<P>(filename:P) -> io::Result<io::Lines<io::BufReader<File>>>
